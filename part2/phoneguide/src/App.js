@@ -1,20 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Filter } from './components/Filter'
 import { NewUserForm } from './components/NewUserForm'
 import { Title } from './components/Title'
 import { UserCard } from './components/UserCard'
 
 const App = () => {
-  const [users, setUsers] = useState([
-    { id: 0, name: 'Arto Hellas', number: '040-123456' },
-    { id: 1, name: 'Ada Lovelace', number: '39-44-5323523' },
-    { id: 2, name: 'Dan Abramov', number: '12-43-234345' },
-    { id: 3, name: 'Mary Poppendieck', number: '39-23-6423122' },
-  ])
+  const [users, setUsers] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filterText, setFilterText] = useState('')
   const [showAll, setShowAll] = useState(true)
+
+  useEffect(() => {
+    axios.get('http://localhost:5005/users').then((res) => {
+      setUsers(res.data)
+    })
+  }, [])
 
   const usersToShow = showAll
     ? users
