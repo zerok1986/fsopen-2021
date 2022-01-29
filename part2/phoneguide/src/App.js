@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import { Filter } from './components/Filter'
 import { NewUserForm } from './components/NewUserForm'
 import { Title } from './components/Title'
 import { UserCard } from './components/UserCard'
+import usersService from './services/users.service'
 
 const App = () => {
   const [users, setUsers] = useState([])
@@ -13,9 +13,7 @@ const App = () => {
   const [showAll, setShowAll] = useState(true)
 
   useEffect(() => {
-    axios.get('http://localhost:5005/users').then((res) => {
-      setUsers(res.data)
-    })
+    usersService.getAll().then((initialUsers) => setUsers(initialUsers))
   }, [])
 
   const usersToShow = showAll
@@ -25,21 +23,46 @@ const App = () => {
   const addUser = (e) => {
     e.preventDefault()
     const userCard = {
-      id: users.length + 1,
+      id: Date.now(),
       name: newName,
       number: newNumber,
     }
 
     if (
-      users.some((user) => user.name === newName || user.number === newNumber)
+      users.some((user) => user.name === newName && user.number !== newNumber)
     ) {
-      alert(`${newName} is already added to phonebook`)
+      window.confirm(
+        `${newName} is already added to phonebook, replace the old number with a new one?`
+      )
+      const user = users.find((user) => user.name === newName)
+      const id = user.id
+      const updatedUser = { ...user, number: newNumber }
+      usersService.update(id, updatedUser).then(() => {
+        usersService.getAll().then((initialUsers) => setUsers(initialUsers))
+      })
+    } else if (
+      users.some((user) => user.name === newName && user.number === newNumber)
+    ) {
+      window.alert(
+        `${newName} is already added with to phonebook with this exact info`
+      )
     } else {
-      setUsers(users.concat(userCard))
-      setNewName('')
-      setNewNumber('')
-      setShowAll(true)
+      usersService.create(userCard).then((returnedUser) => {
+        console.log(returnedUser)
+        setUsers(users.concat(returnedUser))
+        setNewName('')
+        setNewNumber('')
+        setShowAll(true)
+      })
     }
+  }
+
+  const deleteUserById = (id) => {
+    const user = users.find((user) => user.id === id)
+    window.confirm(`Delete ${user.name} ?`) &&
+      usersService.deleteId(id, user).then(() => {
+        usersService.getAll().then((initialUsers) => setUsers(initialUsers))
+      })
   }
 
   const handleNameChange = (e) => {
@@ -68,8 +91,12 @@ const App = () => {
         handleNumChange={handleNumChange}
       />
       <Title text={'Numbers'} />
-      {usersToShow.map((user) => (
-        <UserCard key={user.id} user={user} />
+      {usersToShow?.map((user) => (
+        <UserCard
+          key={user.id}
+          user={user}
+          deleteUser={() => deleteUserById(user.id)}
+        />
       ))}
     </div>
   )
