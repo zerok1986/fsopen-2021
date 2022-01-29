@@ -1,5 +1,5 @@
 import axios from 'axios'
-const BASE_URL = 'http://localhost:5005/users'
+const BASE_URL = 'http://localhost:5005/api/persons'
 
 const getAll = async () => {
   const request = axios.get(BASE_URL)
