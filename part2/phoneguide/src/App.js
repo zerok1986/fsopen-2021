@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import './App.css'
 import { Filter } from './components/Filter'
 import { NewUserForm } from './components/NewUserForm'
 import { Title } from './components/Title'
 import { UserCard } from './components/UserCard'
+import { Notification } from './components/Notification'
 import usersService from './services/users.service'
 
 const App = () => {
@@ -11,6 +13,8 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [filterText, setFilterText] = useState('')
   const [showAll, setShowAll] = useState(true)
+  const [notificationMessage, setMessage] = useState(null)
+  const [isErrorMessage, setIsErrorMessage] = useState(false)
 
   useEffect(() => {
     usersService.getAll().then((initialUsers) => setUsers(initialUsers))
@@ -37,9 +41,25 @@ const App = () => {
       const user = users.find((user) => user.name === newName)
       const id = user.id
       const updatedUser = { ...user, number: newNumber }
-      usersService.update(id, updatedUser).then(() => {
-        usersService.getAll().then((initialUsers) => setUsers(initialUsers))
-      })
+      usersService
+        .update(id, updatedUser)
+        .then(() => {
+          usersService.getAll().then((initialUsers) => setUsers(initialUsers))
+        })
+        .catch(() => {
+          setIsErrorMessage(true)
+          setMessage(
+            `Information of ${newName} has already been removed from server`
+          )
+          setTimeout(() => {
+            setMessage(null)
+            setIsErrorMessage(false)
+          }, 3500)
+        })
+      setMessage(`${newName} successfully updated to phonebook`)
+      setTimeout(() => {
+        setMessage(null)
+      }, 3500)
     } else if (
       users.some((user) => user.name === newName && user.number === newNumber)
     ) {
@@ -48,11 +68,14 @@ const App = () => {
       )
     } else {
       usersService.create(userCard).then((returnedUser) => {
-        console.log(returnedUser)
         setUsers(users.concat(returnedUser))
         setNewName('')
         setNewNumber('')
         setShowAll(true)
+        setMessage(`${newName} successfully added to phonebook`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 3500)
       })
     }
   }
@@ -63,6 +86,10 @@ const App = () => {
       usersService.deleteId(id, user).then(() => {
         usersService.getAll().then((initialUsers) => setUsers(initialUsers))
       })
+    setMessage(`${user.name} successfully deleted from phonebook`)
+    setTimeout(() => {
+      setMessage(null)
+    }, 3500)
   }
 
   const handleNameChange = (e) => {
@@ -81,6 +108,10 @@ const App = () => {
   return (
     <div>
       <Title text={'Phonebook'} />
+      <Notification
+        message={notificationMessage}
+        errorMessage={isErrorMessage}
+      />
       <Filter filterText={filterText} handleFilter={handleFilter} />
       <Title text={'add a new'} />
       <NewUserForm
