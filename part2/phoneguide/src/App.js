@@ -107,13 +107,13 @@ const App = () => {
 
   return (
     <div>
-      <Title text={'Phonebook'} />
+      <Title text={'Phonebook FS App'} />
       <Notification
         message={notificationMessage}
         errorMessage={isErrorMessage}
       />
       <Filter filterText={filterText} handleFilter={handleFilter} />
-      <Title text={'add a new'} />
+      <Title text={'add a new contact'} />
       <NewUserForm
         addUser={addUser}
         newName={newName}
