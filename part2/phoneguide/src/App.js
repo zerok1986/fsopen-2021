@@ -46,11 +46,9 @@ const App = () => {
         .then(() => {
           usersService.getAll().then((initialUsers) => setUsers(initialUsers))
         })
-        .catch(() => {
+        .catch((err) => {
           setIsErrorMessage(true)
-          setMessage(
-            `Information of ${newName} has already been removed from server`
-          )
+          setMessage(`${err.response.data.error}`)
           setTimeout(() => {
             setMessage(null)
             setIsErrorMessage(false)
@@ -67,16 +65,26 @@ const App = () => {
         `${newName} is already added with to phonebook with this exact info`
       )
     } else {
-      usersService.create(userCard).then((returnedUser) => {
-        setUsers(users.concat(returnedUser))
-        setNewName('')
-        setNewNumber('')
-        setShowAll(true)
-        setMessage(`${newName} successfully added to phonebook`)
-        setTimeout(() => {
-          setMessage(null)
-        }, 3500)
-      })
+      usersService
+        .create(userCard)
+        .then((returnedUser) => {
+          setUsers(users.concat(returnedUser))
+          setNewName('')
+          setNewNumber('')
+          setShowAll(true)
+          setMessage(`${newName} successfully added to phonebook`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 3500)
+        })
+        .catch((err) => {
+          setIsErrorMessage(true)
+          setMessage(`${err.response.data.error}`)
+          setTimeout(() => {
+            setMessage(null)
+            setIsErrorMessage(false)
+          }, 3500)
+        })
     }
   }
 
